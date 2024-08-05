@@ -3,7 +3,7 @@
 pkgbase=ncurses
 pkgname=('ncurses' 'ncurses-devel')
 pkgver=6.5
-pkgrel=1
+pkgrel=2
 pkgdesc="System V Release 4.0 curses emulation library"
 arch=('i686' 'x86_64')
 url="https://www.gnu.org/software/ncurses/"
@@ -14,31 +14,14 @@ msys2_references=(
 )
 license=('spdx:MIT')
 makedepends=('autotools' 'gcc')
-source=(#"${pkgbase}-${pkgver}.tar.gz"::"https://invisible-mirror.net/archives/ncurses/current/${pkgbase}-${_basever}-${_date}.tgz"
-        https://ftp.gnu.org/pub/gnu/ncurses/ncurses-${pkgver}.tar.gz{,.sig}
-        "ncurses-6.3-pkgconfig.patch"
-        "ncurses-6.3-cflags-private.patch")
-sha256sums=('136d91bc269a9a5785e5f9e980bc76ab57428f604ce3e5a5a90cebc767971cc6'
-            'SKIP'
-            'b8544a607dfbeffaba2b087f03b57ed1fa81286afca25df65f61b04b5f3b3738'
-            '3107029dfb807e338d34641d78329cd6725c58e6b873352621f4b9611a8380bf')
+source=("${pkgbase}-${pkgver}.tar.gz"::"https://github.com/rkitover/ncurses/tarball/term-driver")
+sha256sums=('SKIP')
 validpgpkeys=('19882D92DDA4C400C22C0D56CC2AF4472167BE03')
 
-prepare() {
-  cd ${srcdir}/${pkgbase}-${pkgver}
-
-  # do not leak build-time LDFLAGS into the pkgconfig files:
-  # https://bugs.archlinux.org/task/68523
-  patch -p1 -i ${srcdir}/ncurses-6.3-pkgconfig.patch
-
-  patch -p1 -i ${srcdir}/ncurses-6.3-cflags-private.patch
-}
-
 build() {
-  cd ${srcdir}/${pkgbase}-${pkgver}
+  cd ${srcdir}/rkitover-${pkgbase}*
 
   ./configure \
-    --build=${CHOST} \
     --with-install-prefix=/usr \
     --without-ada \
     --with-shared \
@@ -55,9 +38,9 @@ build() {
     --enable-sp-funcs \
     --with-wrap-prefix=ncwrap_ \
     --enable-sigwinch \
-    --disable-term-driver \
     --enable-colorfgbg \
     --enable-tcap-names \
+    --enable-term-driver \
     --disable-termcap \
     --disable-mixed-case \
     --with-pkg-config \
@@ -79,14 +62,17 @@ package_ncurses() {
   depends=('gcc-libs')
 
   mkdir -p ${pkgdir}/usr
-  cp -rf $srcdir/dest/usr/bin ${pkgdir}/usr/
+  cp -rf $srcdir/dest/usr/bin ${pkgdir}/usr/ || :
+  cp -rf $srcdir/dest/usr/bin ${pkgdir}/usr/ || :
   rm -f ${pkgdir}/usr/bin/*-config
   mkdir -p ${pkgdir}/usr/lib
-  cp -rf $srcdir/dest/usr/lib/terminfo ${pkgdir}/usr/lib/
-  cp -rf $srcdir/dest/usr/share ${pkgdir}/usr/
+  cp -rf $srcdir/dest/usr/lib/terminfo ${pkgdir}/usr/lib/ || :
+  cp -rf $srcdir/dest/usr/lib/terminfo ${pkgdir}/usr/lib/ || :
+  cp -rf $srcdir/dest/usr/share ${pkgdir}/usr/ || :
+  cp -rf $srcdir/dest/usr/share ${pkgdir}/usr/ || :
 
   # install license, rip it from the readme
-  cd ${srcdir}/${pkgname}-${pkgver}
+  cd ${srcdir}/rkitover-${pkgbase}*
   install -dm755 ${pkgdir}/usr/share/licenses/${pkgname}
   grep -B 100 '$Id' README > ${pkgdir}/usr/share/licenses/${pkgname}/license.txt
 }
@@ -99,11 +85,14 @@ package_ncurses-devel() {
 
   mkdir -p ${pkgdir}/usr/bin
   cp -f $srcdir/dest/usr/bin/*-config ${pkgdir}/usr/bin/
-  cp -rf $srcdir/dest/usr/include ${pkgdir}/usr/
-  cp -rf $srcdir/dest/usr/lib ${pkgdir}/usr/
+  cp -rf $srcdir/dest/usr/include ${pkgdir}/usr/ || :
+  cp -rf $srcdir/dest/usr/include ${pkgdir}/usr/ || :
+  cp -rf $srcdir/dest/usr/lib ${pkgdir}/usr/ || :
+  cp -rf $srcdir/dest/usr/lib ${pkgdir}/usr/ || :
   rm -rf ${pkgdir}/usr/lib/terminfo
 
-  cp -rf ${pkgdir}/usr/include/ncursesw ${pkgdir}/usr/include/ncurses
+  cp -rf ${pkgdir}/usr/include/ncursesw ${pkgdir}/usr/include/ncurses || :
+  cp -rf ${pkgdir}/usr/include/ncursesw ${pkgdir}/usr/include/ncurses || :
   cp -f ${pkgdir}/usr/include/ncursesw/*.h ${pkgdir}/usr/include
 
   cp -f ${pkgdir}/usr/lib/libncursesw.a ${pkgdir}/usr/lib/libncurses.a
